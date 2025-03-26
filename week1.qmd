@@ -1,0 +1,48 @@
+---
+title: "week1"
+author: "Helen Flynn"
+name: Helen
+email: helen.flynn@colostate.edu
+format: html
+editor: visual
+---
+
+#Question 1
+
+```{r}
+#| echo: false
+#| warning: false
+
+
+library(tidyverse)
+library(flextable)
+data <- read_csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
+
+my.date  <- as.Date("2022-02-01")
+my.state <- "Colorado"
+
+codat <- data %>% 
+  filter(state == "Colorado") %>% 
+  group_by(county) %>% 
+  mutate(newcases = cases - lag(cases),
+         newdeaths = deaths - lag(deaths)) %>% 
+  ungroup()
+
+mostcases <- codat %>% 
+  filter(date == my.date) %>% 
+  arrange(desc(cases)) %>% 
+  slice_head(n = 5) %>% 
+  dplyr::select(-fips)
+
+mostcases_tab <-flextable(mostcases, col_keys = names(mostcases), cwidth = 1)
+mostcases_tab
+
+mostnew <- codat %>% 
+  filter(date == my.date) %>% 
+  arrange(desc(newcases)) %>% 
+  slice_head(n = 5) %>% 
+  dplyr::select(-fips)
+
+mostnew_tab <-flextable(mostnew, col_keys = names(mostcases), cwidth = 1)
+mostnew_tab
+```
