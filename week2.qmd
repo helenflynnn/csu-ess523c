@@ -2,9 +2,8 @@
 title: "week2: Distances and the Border Zone"
 format: html
 editor: visual
-author: 
-  - name: Helen Flynn
-  email: helen.flynn@colostate.edu
+name: Helen Flynn
+
 ---
 
 ```{r}
