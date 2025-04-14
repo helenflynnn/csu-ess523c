@@ -149,6 +149,23 @@ ggplot(cocensus_join, aes(x = reorder(county, percentcoviddeaths), y = percentco
 ```
 
 #Question 6:
+Congratulations! You have been promoted to the National COVID-19 Task Force.As part of this exercise, you have been tasked with building anaylsis to compare states to each other.
+
+In this question, we are going to look at the story of 4 states and the impact scale can have on data interpretation. The states include: New York, Colorado, Alabama, and Ohio.
+
+Your task is to make a faceted bar plot showing the number of daily, new cases at the state level.
+```{r}
+library(zoo)
+q6dat <- data %>%
+  filter(state == c("New York","Colorado","Alabama","Ohio")) %>%
+  group_by(state, county) %>%
+  mutate(newcases = cases - lag(cases),
+         newdeaths = deaths - lag(deaths),
+         weekrollmean = rollmean(cases, k = 7, fill = NA, align = "right")) %>%
+  ungroup()
+
+```
+
 
 #Question 7:
 
@@ -159,14 +176,49 @@ ggplot(cocensus_join, aes(x = reorder(county, percentcoviddeaths), y = percentco
     Given the case/death counts are not scaled by population, we expect that each will exhibit a right skew behavior (you can confirm this with density plots, shapiro.test, or histrograms). Given an assumption of linear models is normality in the data, let’s apply a log transformation to cases, deaths, and population to normalize them.
 
 ```{r}
-codat_join <- codat %>% 
+#clean the data, this is what Mike did more or less, can be more or less
+q8dat_join <- data %>%
+  group_by(fips) %>% 
+  mutate(newcases = pmax(0,cases - lag(cases)),
+         newdeaths = pmax(0,deaths - lag(deaths))) %>%
+  ungroup() %>% 
   left_join(fivefip, by = "fips") %>%
-  filter(lubridate::year(date) == 2021)
-  
+  mutate(month = lubridate::month(date),
+         year = lubridate::year(date),
+         season = case_when(m %in% spring,
+                            m %in% summer,
+                            m %in% fall,
+                            m %in% winter
+                            )) %>% 
+  group_by(y, state, season) %>% 
+  summarize() %>% #total population, case, deaths
+  ungroup() %>% 
+  mutate()#implement a log scale so that lm gets data of the right distribution
+
+
+```
+  Once the data has been prepared, build a linear model (lm) to predict the log of cases using the log of deaths the log of population, and the season. Be sure to add an interaction term for population and deaths since they per capita realtionship is significant!
+
+  Once the model is built, summarize it (summary) and report the R-squared value and the p-value of the model. What does this mean for the value of its application?
+    
+```{r}
+model <- lm()#use the scaled variables from the last mutate from above here not the original data
 ```
 
 
 #Question 9:
+Now that you have built a model, it is time to evaluate it.
+
+   Start by using broom::augment to generate a data frame of predictions and residuals.
+
+  Lets, create a scatter plot of the predicted cases vs. the actual cases. Add a line of best fit to the plot, and make the plot as appealing as possible using themes, scales_*, and labels. Describe the realtionship that you see… are you happy with the model?
+
+  A final assumption of an appropriate model is that the residuals are normally distributed. Fortunatly broom::augment provides the .resid outputs for each feature. To visually check for residual normality, create a histogram of the residuals. Make the plot as appealing as possible using themes, scales_*, and labels. How does the distribution look? Was a linear model appropriate for this case?
+```{r}
+e <- broom::augment(model, predict_dat = state_data) #use the model to predict on the original state data
+
+```
+
 
 #Question 10:
 
